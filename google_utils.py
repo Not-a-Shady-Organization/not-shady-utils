@@ -1,10 +1,11 @@
 import os
 import io
+import logging
 
 from google.cloud import language, speech_v1p1beta1
 from google.cloud.language import enums, types
-from google_tts import synthesize_text
 
+from LogDecorator import LogDecorator
 
 
 class MissingAPIKeyError(Exception):
@@ -16,9 +17,8 @@ if not os.path.exists(api_key_filepath):
     raise MissingAPIKeyError()
 
 
-
-
 # Find entities in text and return in order of occurance
+@LogDecorator()
 def find_entities(text):
     # Instantiates a client
     client = language.LanguageServiceClient()
@@ -35,7 +35,7 @@ def find_entities(text):
     return by_occurance
 
 
-
+@LogDecorator()
 def transcribe_audio(audio_filepath):
     client = speech_v1p1beta1.SpeechClient()
     enable_word_time_offsets = True
@@ -64,6 +64,7 @@ def transcribe_audio(audio_filepath):
     return alternative
 
 
+@LogDecorator()
 def interval_of(word, transcription):
     transcibed_words = [w for w in transcription.words]
     if word.lower() not in [w.word.lower() for w in transcibed_words]:
@@ -74,3 +75,66 @@ def interval_of(word, transcription):
             start_time = float(str(w.start_time.seconds) + '.' + str(w.start_time.nanos))
             end_time = float(str(w.end_time.seconds) + '.' + str(w.end_time.nanos))
             return (start_time, end_time)
+
+
+@LogDecorator()
+def synthesize_text(text, output_filepath):
+    """Synthesizes speech from the input string of text."""
+    from google.cloud import texttospeech
+    client = texttospeech.TextToSpeechClient()
+
+    input_text = texttospeech.types.SynthesisInput(text=text)
+
+    # Note: the voice can also be specified by name.
+    # Names of voices can be retrieved with client.list_voices().
+    voice = texttospeech.types.VoiceSelectionParams(
+        language_code='en-US',
+        #ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
+#        name='en-US-Wavenet-A'
+        name='en-AU-Wavenet-B',
+#        name='en-IN-Wavenet-C'
+        )
+
+    audio_config = texttospeech.types.AudioConfig(
+        audio_encoding=texttospeech.enums.AudioEncoding.MP3,
+        speaking_rate=0.8,
+        pitch=-2
+    )
+
+    response = client.synthesize_speech(input_text, voice, audio_config)
+
+    # The response's audio_content is binary.
+    with open(output_filepath, 'wb') as out:
+        out.write(response.audio_content)
+
+
+
+# [START tts_synthesize_ssml]
+@LogDecorator()
+def synthesize_ssml(ssml):
+    """Synthesizes speech from the input string of ssml.
+    Note: ssml must be well-formed according to:
+        https://www.w3.org/TR/speech-synthesis/
+    Example: <speak>Hello there.</speak>
+    """
+    from google.cloud import texttospeech
+    client = texttospeech.TextToSpeechClient()
+
+    input_text = texttospeech.types.SynthesisInput(ssml=ssml)
+
+    # Note: the voice can also be specified by name.
+    # Names of voices can be retrieved with client.list_voices().
+    voice = texttospeech.types.VoiceSelectionParams(
+        language_code='en-US',
+        ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE)
+
+    audio_config = texttospeech.types.AudioConfig(
+        audio_encoding=texttospeech.enums.AudioEncoding.MP3)
+
+    response = client.synthesize_speech(input_text, voice, audio_config)
+
+    # The response's audio_content is binary.
+    with open('output.mp3', 'wb') as out:
+        out.write(response.audio_content)
+        print('Audio content written to file "output.mp3"')
+# [END tts_synthesize_ssml]
