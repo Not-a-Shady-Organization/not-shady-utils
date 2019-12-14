@@ -4,6 +4,7 @@ import logging
 
 from google.cloud import language, speech_v1p1beta1
 from google.cloud.language import enums, types
+from google_images_download import google_images_download
 
 from LogDecorator import LogDecorator
 
@@ -18,7 +19,31 @@ if not os.path.exists(api_key_filepath):
 
 
 
-@LogDecorator
+@LogDecorator()
+def download_images(query, output_directory, image_directory):
+    files = os.listdir(f'{output_directory}/{image_directory}')
+
+    while files == []:
+        response = google_images_download.googleimagesdownload()
+        arguments = {
+            "output_directory": output_directory,
+            "image_directory": image_directory,
+            "keywords": query,
+            "format": "jpg",
+            "limit": 1,
+            # TODO: Drop exact sizing
+            "exact_size": "1920,1080",
+            # "size": "medium"
+             "silent_mode": True
+         }
+        response.download(arguments)
+
+    return f'{query}/{files[0]}'
+
+
+
+
+@LogDecorator()
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     storage_client = storage.Client()
