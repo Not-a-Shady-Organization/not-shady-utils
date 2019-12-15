@@ -22,8 +22,8 @@ def change_video_speed(video_filepath, multiplier, output_filepath):
     check_output(command, shell=True, stderr=log)
 
 @LogDecorator()
-def video_to_flac(video_filepath, mono_filepath):
-    flac_to_mono_flac_command = f'ffmpeg -y -i {video_filepath} -c:a flac -ac 1 {mono_filepath}'
+def media_to_mono_flac(media_filepath, mono_filepath):
+    flac_to_mono_flac_command = f'ffmpeg -y -i {media_filepath} -c:a flac -ac 1 {mono_filepath}'
     check_output(flac_to_mono_flac_command, shell=True)
 
 # TODO: If you start to close to the beginning of a video, we fail for lookahead
