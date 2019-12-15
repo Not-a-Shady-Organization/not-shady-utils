@@ -2,6 +2,8 @@ import os
 import io
 import logging
 
+from utils import makedir
+
 from google.cloud import language, speech_v1p1beta1
 from google.cloud.language import enums, types
 from google_images_download import google_images_download
@@ -20,7 +22,8 @@ if not os.path.exists(api_key_filepath):
 
 
 @LogDecorator()
-def download_images(query, output_directory, image_directory):
+def download_image(query, output_directory, image_directory):
+    makedir(f'{output_directory}/{image_directory}')
     files = os.listdir(f'{output_directory}/{image_directory}')
 
     while files == []:
@@ -37,6 +40,8 @@ def download_images(query, output_directory, image_directory):
              "silent_mode": True
          }
         response.download(arguments)
+        files = os.listdir(f'{output_directory}/{image_directory}')
+
 
     return f'{query}/{files[0]}'
 
@@ -78,6 +83,7 @@ def find_entities(text):
     return by_occurance
 
 
+
 @LogDecorator()
 def transcribe_audio(audio_filepath):
     client = speech_v1p1beta1.SpeechClient()
@@ -101,6 +107,9 @@ def transcribe_audio(audio_filepath):
         result = response.results[0]
     except:
         return None
+
+    logging.debug(response)
+    logging.debug(result)
 
     # First alternative is the most probable result
     alternative = result.alternatives[0]
@@ -134,14 +143,14 @@ def synthesize_text(text, output_filepath):
         language_code='en-US',
         #ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
 #        name='en-US-Wavenet-A'
-        name='en-AU-Wavenet-B',
-#        name='en-IN-Wavenet-C'
+#        name='en-AU-Wavenet-B',
+        name='en-IN-Wavenet-C'
         )
 
     audio_config = texttospeech.types.AudioConfig(
         audio_encoding=texttospeech.enums.AudioEncoding.MP3,
-        speaking_rate=0.8,
-        pitch=-2
+        speaking_rate=0.9,
+        pitch=-10
     )
 
     response = client.synthesize_speech(input_text, voice, audio_config)

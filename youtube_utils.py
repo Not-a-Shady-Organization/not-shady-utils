@@ -2,7 +2,7 @@ from subprocess import check_output
 import youtube_dl
 from LogDecorator import LogDecorator
 
-@LogDecorator
+@LogDecorator()
 def download_captions(video_code):
     video_url = 'https://www.youtube.com/watch?v=' + video_code
 
@@ -21,7 +21,7 @@ def download_captions(video_code):
     with ydl:
         result = ydl.extract_info(video_url)
 
-@LogDecorator
+@LogDecorator()
 def video_code_to_url(video_code):
     url = f'https://www.youtube.com/watch?v={video_code}'
     command = f'youtube-dl -g {url}'
