@@ -85,15 +85,14 @@ def find_entities(text):
 
 
 @LogDecorator()
-def transcribe_audio(audio_filepath):
+def transcribe_audio(audio_filepath, **kwargs):
     client = speech_v1p1beta1.SpeechClient()
     enable_word_time_offsets = True
     enable_word_confidence = True
-    language_code = "en-US"
     config = {
         "enable_word_confidence": enable_word_confidence,
         "enable_word_time_offsets": enable_word_time_offsets,
-        "language_code": language_code,
+        "language_code": 'en-US' if 'language_code' not in kwargs else kwargs['language_code'],
     }
     with io.open(audio_filepath, "rb") as f:
         content = f.read()
@@ -130,7 +129,7 @@ def interval_of(word, transcription):
 
 
 @LogDecorator()
-def synthesize_text(text, output_filepath):
+def synthesize_text(text, output_filepath, **kwargs):
     """Synthesizes speech from the input string of text."""
     from google.cloud import texttospeech
     client = texttospeech.TextToSpeechClient()
@@ -144,13 +143,13 @@ def synthesize_text(text, output_filepath):
         #ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
 #        name='en-US-Wavenet-A'
 #        name='en-AU-Wavenet-B',
-        name='en-IN-Wavenet-C'
-        )
+        name='en-IN-Wavenet-C' if 'name' not in kwargs else kwargs['name']
+    )
 
     audio_config = texttospeech.types.AudioConfig(
         audio_encoding=texttospeech.enums.AudioEncoding.MP3,
-        speaking_rate=0.9,
-        pitch=-10
+        speaking_rate=1. if 'speaking_rate' not in kwargs else kwargs['speaking_rate'],
+        pitch=0 if 'pitch' not in kwargs else kwargs['pitch']
     )
 
     response = client.synthesize_speech(input_text, voice, audio_config)
