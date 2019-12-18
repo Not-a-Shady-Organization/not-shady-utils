@@ -65,8 +65,10 @@ class Scraper():
                 successful_uploads += 1
                 hashes.append(hash)
 
-                if successful_uploads == count:
-                    break
+                if successful_uploads >= count:
+                    new_ledger = '\n'.join(hashes)
+                    upload_string_to_bucket('craig-the-poet', new_ledger, bucket_ledger)
+                    return
             except:
                 pass
 
