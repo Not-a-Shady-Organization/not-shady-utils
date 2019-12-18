@@ -3,8 +3,18 @@ from LogDecorator import LogDecorator
 
 @LogDecorator()
 def create_slideshow(concat_filepath, output_filepath):
-    slideshow_command = f"ffmpeg -y -safe 0 -i {concat_filepath} -c:v libx264 -crf 23 -pix_fmt yuv420p {output_filepath}"
+    slideshow_command = f"ffmpeg -y -safe 0 -protocol_whitelist file,http,https,tcp,tls -i {concat_filepath} -c:v libx264 -crf 23 -pix_fmt yuv420p {output_filepath}"
     check_output(slideshow_command, shell=True)
+
+@LogDecorator()
+def fade_in_fade_out(video_filepath, fade_time, output_filepath):
+    fade_in_fade_out_command = f'ffmpeg -y -i {video_filepath} -filter_complex "fade=d={fade_time}, reverse, fade=d={fade_time}, reverse" {output_filepath}'
+    check_output(fade_in_fade_out_command, shell=True)
+
+@LogDecorator()
+def resize_image(input_filepath, width, height, output_filepath):
+    resize_command = f'ffmpeg -y -i {input_filepath} -vf "scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2" {output_filepath}'
+    check_output(resize_command, shell=True)
 
 @LogDecorator()
 def add_audio_to_video(video_filepath, audio_filepath, output_filepath):
