@@ -1,6 +1,21 @@
 from LogDecorator import LogDecorator
 import os
+import requests
+import shutil
+from subprocess import check_output
 
+
+@LogDecorator()
+def download_image_from_url(url, output_filepath):
+    resp = requests.get(url, stream=True)
+    with open(output_filepath, 'wb') as f:
+        resp.raw.decode_content = True
+        shutil.copyfileobj(resp.raw, f)
+
+@LogDecorator()
+def text_to_image(text, output_filepath, font='BrushScriptI', font_size=240, font_color='white', background='black'):
+    command = f'convert -background {background} -fill {font_color} -font {font} -pointsize {font_size} label:"{text}" {output_filepath}'
+    check_output(command, shell=True)
 
 @LogDecorator()
 def seconds_to_timecode(seconds):

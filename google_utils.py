@@ -4,6 +4,7 @@ import logging
 
 from utils import makedir
 
+from google.cloud import storage
 from google.cloud import language, speech_v1p1beta1
 from google.cloud.language import enums, types
 from google_images_download import google_images_download
@@ -35,8 +36,8 @@ def download_image(query, output_directory, image_directory):
             "format": "jpg",
             "limit": 1,
             # TODO: Drop exact sizing
-            "exact_size": "1920,1080",
-            # "size": "medium"
+#            "exact_size": "1920,1080",
+             "size": "medium",
              "silent_mode": True
          }
         response.download(arguments)
@@ -49,20 +50,41 @@ def download_image(query, output_directory, image_directory):
 
 
 @LogDecorator()
-def upload_blob(bucket_name, source_file_name, destination_blob_name):
+def upload_file_to_bucket(bucket_name, source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
-
     blob.upload_from_filename(source_file_name)
 
-    print('File {} uploaded to {}.'.format(
-            source_file_name,
-            destination_blob_name
-        )
-    )
 
+@LogDecorator()
+def upload_string_to_bucket(bucket_name, string, destination_blob_name, metadata=None):
+    """Uploads a string to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_string(string)
+
+    blob.metadata = metadata
+    blob.patch()
+
+
+@LogDecorator()
+def download_as_string(bucket_name, blob_name):
+    """Uploads a string to the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    return blob.download_as_string().decode("utf-8")
+
+@LogDecorator()
+def list_blobs(bucket_name):
+    """Lists all the blobs in the bucket."""
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name)
+    return [blob for blob in blobs]
 
 
 # Find entities in text and return in order of occurance
