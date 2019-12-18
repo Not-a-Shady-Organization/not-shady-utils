@@ -14,7 +14,7 @@ class Scraper():
 
 
     @LogDecorator()
-    def scrape(self, count):
+    def scrape_to_bucket(self, count):
         # TODO : Add abstraction via generator function to allow counts > one page of ads
         result_page = requests.get(self.ad_list)
         result_soup = BeautifulSoup(result_page.text, 'html.parser')
@@ -26,7 +26,14 @@ class Scraper():
 
         # Pull the ledger to check if we've DL'd the ad already
         bucket_ledger = f'craigslist/ledger.txt'
-        ledger = download_as_string('craig-the-poet', bucket_ledger)
+
+        # Either download the ledger, or create one, then download it
+        try:
+            ledger = download_as_string('craig-the-poet', bucket_ledger)
+        except:
+            upload_string_to_bucket('craig-the-poet', '', bucket_ledger)
+            ledger = download_as_string('craig-the-poet', bucket_ledger)
+
         hashes = ledger.split('\n')
 
         time = str(datetime.now())
@@ -106,4 +113,4 @@ class Scraper():
 
 if __name__ == '__main__':
     s = Scraper(sys.argv[-1])
-    s.scrape(4)
+    s.scrape_to_bucket(5)
