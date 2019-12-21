@@ -1,6 +1,7 @@
 import os
 import io
 import logging
+from ffmpeg_utils import get_audio_length
 
 from utils import makedir
 
@@ -119,6 +120,32 @@ def transcribe_audio(audio_filepath, **kwargs):
     with io.open(audio_filepath, "rb") as f:
         content = f.read()
     audio = {"content": content}
+    audio_length = get_audio_length(audio_filepath)
+    
+    #If audio length is greater than a min, upload to bucket, use longrunningresponse call api
+    if audio_length > 60:
+        storage_client = storage.Client()
+
+        #deal with audio path names
+        upload_file_to_bucket("craig-the-poet", audio_filepath, "temp_long_file")
+        audio['uri'] = "gs://craig-the-poet/temp_long_file"
+        operation = client.long_running_recognize(config, audio)
+        response = operation.result(timeout=10000)
+
+        word_dict = {}
+
+        for result in response.results:
+            alternative = result.alternatives[0]
+            words = alternative.words
+            for word in words:
+                if str(word.word) in word_dict.keys():
+                    word_dict[str(word.word).lower()].append(word)
+                else:
+                    word_dict[str(word.word).lower()] = [word]
+        bucket = storage_client.bucket("craig-the-poet")
+        blob = bucket.blob("temp_long_file")
+        blob.delete()
+        return word_dict
 
     response = client.recognize(config, audio)
 
@@ -139,6 +166,18 @@ def transcribe_audio(audio_filepath, **kwargs):
 
 @LogDecorator()
 def interval_of(word, transcription):
+    if type(transcription) is dict:
+        if word.lower() not in transcription.keys():
+            return None
+
+        if len(transcription[word.lower()]) > 1:
+            entry = transcription[word.lower()].pop(0)
+        else:
+            entry = transcription[word.lower()][0]
+        start_time = float(str(entry.start_time.seconds) + '.' + str(entry.start_time.nanos))
+        end_time = float(str(entry.end_time.seconds) + '.' + str(entry.end_time.nanos))
+        return(start_time, end_time)
+
     transcibed_words = [w for w in transcription.words]
     if word.lower() not in [w.word.lower() for w in transcibed_words]:
         return None

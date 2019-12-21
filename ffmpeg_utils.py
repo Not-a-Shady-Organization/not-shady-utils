@@ -42,3 +42,9 @@ def download_video(url_one, url_two, start_time, end_time, output, safety_buffer
     clip_length = end_time - start_time + (2 * safety_buffer)
     ffmpeg_command = f'ffmpeg -y -ss {seconds_to_timecode(start_time - lookahead)} -i "{url_one}" -ss {seconds_to_timecode(start_time - lookahead)} -i "{url_two}" -map 0:v -map 1:a -ss {lookahead - safety_buffer} -t {seconds_to_timecode(clip_length)} -c:v libx264 -c:a aac {output}'
     check_output(ffmpeg_command, shell=True)
+
+@LogDecorator()
+def get_audio_length(audio_filepath):
+    ffmpeg_command = f'ffprobe -i {audio_filepath} -show_entries format=duration -v quiet -of csv="p=0"'
+    length = check_output(ffmpeg_command, shell=True)
+    return float(length)
