@@ -5,6 +5,7 @@ from google_utils import upload_string_to_bucket, download_as_string
 import sys
 from datetime import datetime
 import hashlib
+from utils import clean_word
 
 
 class Scraper():
@@ -55,7 +56,7 @@ class Scraper():
         text = title + '\n' + body
 
         dir = city if not bucket_dir else bucket_dir
-        destination_filepath = f'craigslist/{dir}/{title}.txt'
+        destination_filepath = f'craigslist/{dir}/{clean_word(title)}.txt'
         upload_string_to_bucket('craig-the-poet', text, destination_filepath, metadata)
 
         hashes.append(hash)
