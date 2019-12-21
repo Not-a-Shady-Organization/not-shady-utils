@@ -79,6 +79,11 @@ def concat_videos(input_filepaths, output_filepath, **kwargs):
     .output(output_filepath, **kwargs)\
     .run()
 
+@LogDecorator()
+def get_audio_length(audio_filepath):
+    ffmpeg_command = f'ffprobe -i {audio_filepath} -show_entries format=duration -v quiet -of csv="p=0"'
+    length = check_output(ffmpeg_command, shell=True)
+    return float(length)
 
 @LogDecorator()
 def change_video_speed(input_video_filepath, multiplier, output_filepath, **kwargs):
