@@ -121,9 +121,9 @@ def transcribe_audio(audio_filepath, **kwargs):
         content = f.read()
     audio = {"content": content}
     audio_length = get_audio_length(audio_filepath)
-    
+
     #If audio length is greater than a min, upload to bucket, use longrunningresponse call api
-    if audio_length > 60:
+    if audio_length > 45:
         storage_client = storage.Client()
 
         #deal with audio path names
