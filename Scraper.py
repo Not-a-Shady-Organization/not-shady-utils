@@ -8,8 +8,11 @@ import hashlib
 from utils import clean_word
 
 
-class Scraper():
+class AdTooShort(Exception):
+    pass
 
+
+class Scraper():
     def __init__(self, **kwargs):
         pass
 
@@ -23,21 +26,28 @@ class Scraper():
         return ledger
 
 
-    LogDecorator()
-    def scrape_ad_to_bucket(self, ad_url, bucket_dir=None):
-        # Pull the ledger to later check if we've DL'd the ad already
-        bucket_ledger = f'craigslist/ledger.txt'
-        ledger = self.get_ledger(bucket_ledger)
-        hashes = ledger.split('\n')
-
-        time = str(datetime.now())
-
+    @LogDecorator()
+    def scrape_ad_to_bucket(self, ad_url, bucket_dir=None, min_word_count=None):
         # Get the ad
-        obj = self.scrape_craigslist_ad(ad_url)
+        try:
+            obj = self.scrape_craigslist_ad(ad_url)
+        except AttributeError as e:
+            raise e
+
         title = obj['title']
         body = obj['body']
         city = self.get_city_from_url(ad_url)
         hash = hashlib.sha256(obj['body'].encode()).hexdigest()
+        dir = city if not bucket_dir else bucket_dir
+        time = str(datetime.now())
+
+        if min_word_count and len(body.split(' ')) < min_word_count:
+            raise AdTooShort('Requested ad was below the minimum word count')
+
+        # Pull the ledger to later check if we've DL'd the ad already
+        bucket_ledger = f'craigslist/{dir}/ledger.txt'
+        ledger = self.get_ledger(bucket_ledger)
+        hashes = ledger.split('\n')
 
         # If we've seen the hash, skip this ad
         if hash in hashes:
@@ -49,13 +59,15 @@ class Scraper():
         metadata = {
             'url': ad_url,
             'hash': hash,
-            'used': False,
-            'word_count': len(body.split())
+
+            'word_count': len(body.split()),
+
+            'in-use': False,
+            'failed': False,
+            'used': False
         }
 
         text = title + '\n' + body
-
-        dir = city if not bucket_dir else bucket_dir
         destination_filepath = f'craigslist/{dir}/{clean_word(title)}.txt'
         upload_string_to_bucket('craig-the-poet', text, destination_filepath, metadata)
 
@@ -68,7 +80,7 @@ class Scraper():
 
 
     @LogDecorator()
-    def scrape_ads_to_bucket(self, ad_list, count, bucket_dir=None):
+    def scrape_ads_to_bucket(self, ad_list, count, bucket_dir=None, min_word_count=None):
         # TODO : Add abstraction via generator function to allow counts > one page of ads
         result_page = requests.get(ad_list)
         result_soup = BeautifulSoup(result_page.text, 'html.parser')
@@ -81,12 +93,14 @@ class Scraper():
         successful_uploads = 0
         for i, url in enumerate(urls):
             try:
-                if self.scrape_ad_to_bucket(url, bucket_dir=bucket_dir):
+                if self.scrape_ad_to_bucket(url, bucket_dir=bucket_dir, min_word_count=min_word_count):
                     successful_uploads += 1
 
                 if successful_uploads >= count:
                     return
-            except:
+            except AdTooShort:
+                pass
+            except AttributeError:
                 pass
 
 
