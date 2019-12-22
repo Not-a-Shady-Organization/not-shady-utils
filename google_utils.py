@@ -1,7 +1,7 @@
 import os
 import io
 import logging
-from ffmpeg_utils import get_audio_length
+from ffmpeg_utils import get_media_length
 
 from utils import makedir
 
@@ -51,12 +51,16 @@ def download_image(query, output_directory, image_directory):
 
 
 @LogDecorator()
-def upload_file_to_bucket(bucket_name, source_file_name, destination_blob_name):
+def upload_file_to_bucket(bucket_name, source_file_name, destination_blob_name, metadata=None):
     """Uploads a file to the bucket."""
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(source_file_name)
+
+    blob.metadata = metadata
+    blob.patch()
+
 
 
 @LogDecorator()
@@ -120,7 +124,7 @@ def transcribe_audio(audio_filepath, **kwargs):
     with io.open(audio_filepath, "rb") as f:
         content = f.read()
     audio = {"content": content}
-    audio_length = get_audio_length(audio_filepath)
+    audio_length = get_media_length(audio_filepath)
 
     #If audio length is greater than a min, upload to bucket, use longrunningresponse call api
     if audio_length > 45:
