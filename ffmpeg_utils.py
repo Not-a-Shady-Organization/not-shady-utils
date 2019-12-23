@@ -52,10 +52,12 @@ def fade_in_fade_out(video_filepath, fade_in_time, fade_out_time, output_filepat
     length = get_media_length(video_filepath)
 
     i = ffmpeg.input(video_filepath)
-    i.video\
+    v = i.video\
     .filter('fade', **{'type': 'in', 'duration': fade_in_time})\
     .filter('fade', **{'type': 'out', 'duration': fade_out_time, 'start_time': length-fade_out_time-.1})\
-    .output(output_filepath, **kwargs)\
+    a = i.audio
+
+    ffmpeg.output(a, v, output_filepath, **kwargs)\
     .run()
 
 
