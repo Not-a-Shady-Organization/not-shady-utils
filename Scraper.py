@@ -38,6 +38,7 @@ class Scraper():
 
         title = obj['title']
         body = obj['body']
+        posted_time = obj['posted_time']
         city = self.get_city_from_url(ad_url)
         hash = hashlib.sha256(obj['body'].encode()).hexdigest()
         dir = city if not bucket_dir else bucket_dir
@@ -63,6 +64,7 @@ class Scraper():
             'hash': hash,
 
             'word_count': len(body.split()),
+            'posted_time': posted_time,
 
             'in-use': False,
             'failed': False,
@@ -137,10 +139,13 @@ class Scraper():
         result_title_element = result_soup.find(id='titletextonly')
         result_title = result_title_element.text
 
+        result_time_element = result_soup.find('time')
+        posted_time = result_time_element['datetime']
+
         # Get Craigslist body
         result_body_element = result_soup.find(id='postingbody')
         bad_text = 'QR Code Link to This Post'
         result_text = [x for x in result_body_element.text.split('\n') if x != bad_text and x != '']
         result_body = '\n'.join(result_text)
 
-        return {'title': result_title, 'body': result_body}
+        return {'title': result_title, 'body': result_body, 'posted_time': posted_time}
