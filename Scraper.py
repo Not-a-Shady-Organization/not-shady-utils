@@ -28,6 +28,8 @@ class Scraper():
 
     @LogDecorator()
     def scrape_ad_to_bucket(self, ad_url, bucket_dir=None, min_word_count=None):
+        min_word_count = int(min_word_count)
+
         # Get the ad
         try:
             obj = self.scrape_craigslist_ad(ad_url)
@@ -81,6 +83,9 @@ class Scraper():
 
     @LogDecorator()
     def scrape_ads_to_bucket(self, ad_list, count, bucket_dir=None, min_word_count=None):
+        count = int(count)
+        min_word_count = int(min_word_count)
+
         # TODO : Add abstraction via generator function to allow counts > one page of ads
         result_page = requests.get(ad_list)
         result_soup = BeautifulSoup(result_page.text, 'html.parser')
