@@ -10,10 +10,6 @@ def create_slideshow(concat_filepath, output_filepath):
     slideshow_command = f'ffmpeg -y -hide_banner -loglevel panic -safe 0 -protocol_whitelist file,http,https,tcp,tls -i "{concat_filepath}" -c:v libx264 -crf 23 -pix_fmt yuv420p "{output_filepath}"'
     check_output(slideshow_command, shell=True)
 
-@LogDecorator()
-def fade_in_fade_out(video_filepath, fade_time, output_filepath):
-    fade_in_fade_out_command = f'ffmpeg -y -hide_banner -loglevel panic -i "{video_filepath}" -filter_complex "fade=d={fade_time}, reverse, fade=d={fade_time}, reverse" "{output_filepath}"'
-    check_output(fade_in_fade_out_command, shell=True)
 
 @LogDecorator()
 def resize_image(input_filepath, width, height, output_filepath):
@@ -51,6 +47,16 @@ def concat_images(frames_information, output_filepath, **kwargs):
     os.remove('.tmp-concat.txt')
 
 
+@LogDecorator()
+def fade_in_fade_out(video_filepath, fade_in_time, fade_out_time, output_filepath, **kwargs):
+    length = get_media_length(video_filepath)
+
+    i = ffmpeg.input(video_filepath)
+    i.video\
+    .filter('fade', **{'type': 'in', 'duration': fade_in_time})\
+    .filter('fade', **{'type': 'out', 'duration': fade_out_time, 'start_time': length-fade_out_time-.1})\
+    .output(output_filepath, **kwargs)\
+    .run()
 
 
 @LogDecorator()
