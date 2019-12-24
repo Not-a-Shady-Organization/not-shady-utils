@@ -38,7 +38,7 @@ class Scraper():
 
         title = obj['title']
         body = obj['body']
-        posted_time = obj['posted_time']
+        ad_posted_time = obj['ad-posted-time']
         city = self.get_city_from_url(ad_url)
         hash = hashlib.sha256(obj['body'].encode()).hexdigest()
         dir = city if not bucket_dir else bucket_dir
@@ -60,15 +60,18 @@ class Scraper():
 
         # Add hash to seen hashes and upload this ad
         metadata = {
-            'url': ad_url,
+            # Currently unused, but could confirm ledger accuracy
             'hash': hash,
 
-            'word_count': len(body.split()),
-            'posted_time': posted_time,
+            # These metadata are passed onto the video poem when generated
+            'ad-url': ad_url,
+            'ad-title': title, # As we need to clean the title in most circumstances, this metadata will preserve the original title
+            'ad-posted-time': posted_time,
+            'ad-body-word-count': len(body.split()),
 
-            'in-use': False,
-            'failed': False,
-            'used': False
+            'in-use': False, # Signifies an ad is already being made into a poem
+            'failed': False, # Signifies an ad has failed the poem making process (and shouldn't be used)
+            'used': False # Signifies an ad has already been made into a poem
         }
 
         text = title + '\n' + body
@@ -140,7 +143,7 @@ class Scraper():
         result_title = result_title_element.text
 
         result_time_element = result_soup.find('time')
-        posted_time = result_time_element['datetime']
+        ad_posted_time = result_time_element['datetime']
 
         # Get Craigslist body
         result_body_element = result_soup.find(id='postingbody')
@@ -148,4 +151,4 @@ class Scraper():
         result_text = [x for x in result_body_element.text.split('\n') if x != bad_text and x != '']
         result_body = '\n'.join(result_text)
 
-        return {'title': result_title, 'body': result_body, 'posted_time': posted_time}
+        return {'title': result_title, 'body': result_body, 'ad-posted-time': ad_posted_time}
