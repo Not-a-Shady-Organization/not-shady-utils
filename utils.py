@@ -3,9 +3,29 @@ import os
 import requests
 import shutil
 from subprocess import check_output
+from datetime import datetime
+
 
 class BadOptionsError(Exception):
     pass
+
+
+
+@LogDecorator()
+def convert_to_date(s):
+    try:
+        return datetime.strptime(s, "%m-%d-%Y")
+    except ValueError:
+        msg = f"Not a valid date: {s}"
+        raise argparse.ArgumentTypeError(msg)
+
+@LogDecorator()
+def date_matches_craigslist_date(date, datetime_string):
+    date_obj = datetime_string.split('T')[0]
+    year, month, day = date_obj.split('-')
+    datetime_obj = convert_to_date(f'{month}-{day}-{year}')
+    return date == datetime_obj
+
 
 @LogDecorator()
 def download_image_from_url(url, output_filepath):
