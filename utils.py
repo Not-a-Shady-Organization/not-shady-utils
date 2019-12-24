@@ -4,6 +4,8 @@ import requests
 import shutil
 from subprocess import check_output
 
+class BadOptionsError(Exception):
+    pass
 
 @LogDecorator()
 def download_image_from_url(url, output_filepath):
