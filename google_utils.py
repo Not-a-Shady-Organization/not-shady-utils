@@ -85,11 +85,11 @@ def download_as_string(bucket_name, blob_name):
     return blob.download_as_string().decode("utf-8")
 
 @LogDecorator()
-def list_blobs(bucket_name):
+def list_blobs(bucket_name, bucket_dir_path=''):
     """Lists all the blobs in the bucket."""
     storage_client = storage.Client()
     blobs = storage_client.list_blobs(bucket_name)
-    return [blob for blob in blobs]
+    return [blob for blob in blobs if bucket_dir_path in blob.name]
 
 
 # Find entities in text and return in order of occurance
