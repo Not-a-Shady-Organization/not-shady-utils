@@ -23,6 +23,7 @@ if not os.path.exists(api_key_filepath):
 
 
 
+
 @LogDecorator()
 def download_image(query, output_directory, image_directory):
     makedir(f'{output_directory}/{image_directory}')
@@ -90,6 +91,12 @@ def list_blobs(bucket_name, bucket_dir_path=''):
     storage_client = storage.Client()
     blobs = storage_client.list_blobs(bucket_name)
     return [blob for blob in blobs if bucket_dir_path in blob.name]
+
+@LogDecorator()
+def get_blob(bucket_path):
+    client = storage.Client()
+    bucket = client.get_bucket('craig-the-poet')
+    return storage.Blob(bucket_path, bucket)
 
 
 # Find entities in text and return in order of occurance
