@@ -16,22 +16,7 @@ def convert_to_date(s):
     try:
         return datetime.strptime(s, "%m-%d-%Y")
     except ValueError:
-        msg = f"Not a valid date: {s}"
-        raise argparse.ArgumentTypeError(msg)
-
-@LogDecorator()
-def craigslist_format_to_date(s):
-    date_string = s.split('T')[0]
-    year, month, day = date_string.split('-')
-    return convert_to_date(f'{month}-{day}-{year}')
-
-@LogDecorator()
-def craigslist_format_to_datetime(s):
-    date_string, time_and_zone_string = s.split('T')
-    time_string, zone_string = time_and_zone_string.split('-')
-    year, month, day = date_string.split('-')
-    hour, minute, second = time_string.split(':')
-    return datetime.strptime(f'{year}-{month}-{day}-{hour}-{minute}-{second}', '%Y-%m-%d-%H-%M-%S')
+        raise ValueError(f"Not a valid date: {s}")
 
 @LogDecorator()
 def download_image_from_url(url, output_filepath):
