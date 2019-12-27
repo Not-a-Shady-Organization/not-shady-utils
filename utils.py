@@ -3,7 +3,7 @@ import os
 import requests
 import shutil
 from subprocess import check_output
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class BadOptionsError(Exception):
