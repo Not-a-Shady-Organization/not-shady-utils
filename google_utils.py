@@ -45,7 +45,6 @@ def download_image(query, output_directory, image_directory):
         response.download(arguments)
         files = os.listdir(f'{output_directory}/{image_directory}')
 
-
     return f'{query}/{files[0]}'
 
 
@@ -201,7 +200,7 @@ def interval_of(word, transcription):
 
 
 @LogDecorator()
-def synthesize_text(text, output_filepath, tts_params):
+def synthesize_text(text, output_filepath, tts_params={}):
     """Synthesizes speech from the input string of text."""
     from google.cloud import texttospeech
     client = texttospeech.TextToSpeechClient()
@@ -213,9 +212,7 @@ def synthesize_text(text, output_filepath, tts_params):
     voice = texttospeech.types.VoiceSelectionParams(
         language_code='en-US',
         #ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
-#        name='en-US-Wavenet-A'
-#        name='en-AU-Wavenet-B',
-        name='en-IN-Wavenet-C' if 'name' not in tts_params else tts_params['name'],
+        name='en-IN-Wavenet-C' if 'voice' not in tts_params else tts_params['voice'],
     )
 
     audio_config = texttospeech.types.AudioConfig(
