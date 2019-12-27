@@ -15,7 +15,7 @@ def handle_requests(requests):
 
 
 async def fetch(request, session):
-    async with session.request(**request) as response:
+    async with session.request(**request, timeout=None) as response:
         return await response.read()
 
 
