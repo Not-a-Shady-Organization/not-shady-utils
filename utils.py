@@ -14,6 +14,10 @@ class BadOptionsError(Exception):
 
 @LogDecorator()
 def convert_to_date(s):
+    if s == 'today':
+        return datetime.now()
+    if s == 'yesterday':
+        return datetime.now() - timedelta(days=1)
     try:
         return datetime.strptime(s, "%m-%d-%Y")
     except ValueError:
