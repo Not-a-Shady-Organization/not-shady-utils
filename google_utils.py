@@ -201,7 +201,7 @@ def interval_of(word, transcription):
 
 
 @LogDecorator()
-def synthesize_text(text, output_filepath, **kwargs):
+def synthesize_text(text, output_filepath, tts_params):
     """Synthesizes speech from the input string of text."""
     from google.cloud import texttospeech
     client = texttospeech.TextToSpeechClient()
@@ -215,13 +215,13 @@ def synthesize_text(text, output_filepath, **kwargs):
         #ssml_gender=texttospeech.enums.SsmlVoiceGender.FEMALE
 #        name='en-US-Wavenet-A'
 #        name='en-AU-Wavenet-B',
-        name='en-IN-Wavenet-C' if 'name' not in kwargs else kwargs['name']
+        name='en-IN-Wavenet-C' if 'name' not in tts_params else tts_params['name'],
     )
 
     audio_config = texttospeech.types.AudioConfig(
         audio_encoding=texttospeech.enums.AudioEncoding.MP3,
-        speaking_rate=1. if 'speaking_rate' not in kwargs else kwargs['speaking_rate'],
-        pitch=0 if 'pitch' not in kwargs else kwargs['pitch']
+        speaking_rate=1. if 'speaking_rate' not in tts_params else tts_params['speaking_rate'],
+        pitch=0 if 'pitch' not in tts_params else tts_params['pitch']
     )
 
     response = client.synthesize_speech(input_text, voice, audio_config)
