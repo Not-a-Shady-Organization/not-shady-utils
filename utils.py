@@ -4,12 +4,22 @@ import requests
 import shutil
 from subprocess import check_output
 from datetime import datetime, timedelta
+from google.cloud import datastore
 
 
 class BadOptionsError(Exception):
     pass
 
 
+@LogDecorator()
+def get_datastore_credential(name):
+    # Instantiates a client
+    client = datastore.Client()
+
+    # Type and key
+    key = client.key('Credentials', name)
+    dictionary = client.get(key)
+    return dictionary[name]
 
 
 @LogDecorator()

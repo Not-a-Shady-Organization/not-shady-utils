@@ -4,12 +4,17 @@ from LogDecorator import LogDecorator
 import os
 from async_utils import handle_requests
 import json
+from utils import get_datastore_credential
 
 
 @LogDecorator()
 def refresh_access_token(filepath):
-    if 'CLIENT_ID' not in os.environ or 'CLIENT_SECRET' not in os.environ or 'REFRESH_TOKEN' not in os.environ:
-        raise ValueError(f'CLIENT_ID, CLIENT_SECRET, and REFRESH_TOKEN must be defined as environment variables to enable YouTube uploads')
+    youtube_client_id = get_datastore_credential('YOUTUBE_CLIENT_ID')
+    youtube_client_secret = get_datastore_credential('YOUTUBE_CLIENT_SECRET')
+    youtube_refresh_token = get_datastore_credential('YOUTUBE_REFRESH_TOKEN')
+
+    if not youtube_client_id or not youtube_client_secret or not youtube_refresh_token
+        raise ValueError(f'CLIENT_ID, CLIENT_SECRET, and REFRESH_TOKEN must be defined on GCP Datastore to enable YouTube uploads')
 
     # Load the template oauth2.json file with our credentials
     with open('youtube-oauth2.json.example', 'r') as f:
@@ -20,9 +25,9 @@ def refresh_access_token(filepath):
         'method': 'POST',
         'url': 'https://accounts.google.com/o/oauth2/token',
         'json': {
-            'client_id': os.environ['CLIENT_ID'],
-            'client_secret': os.environ['CLIENT_SECRET'],
-            'refresh_token': os.environ['REFRESH_TOKEN'],
+            'client_id': youtube_client_id,
+            'client_secret': youtube_client_secret,
+            'refresh_token': youtube_refresh_token,
             'grant_type': 'refresh_token'
           }
     }]
@@ -30,8 +35,6 @@ def refresh_access_token(filepath):
 
     # Sub in new access token over the old
     oauth_dict['token_response'] = response
-
-    # TODO: Handle expiry field??
 
     # Write to file
     with open(filepath, 'w') as f:
