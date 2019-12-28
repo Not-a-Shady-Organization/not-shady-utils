@@ -13,7 +13,7 @@ def refresh_access_token(filepath):
     youtube_client_secret = get_datastore_credential('YOUTUBE_CLIENT_SECRET')
     youtube_refresh_token = get_datastore_credential('YOUTUBE_REFRESH_TOKEN')
 
-    if not youtube_client_id or not youtube_client_secret or not youtube_refresh_token
+    if not youtube_client_id or not youtube_client_secret or not youtube_refresh_token:
         raise ValueError(f'CLIENT_ID, CLIENT_SECRET, and REFRESH_TOKEN must be defined on GCP Datastore to enable YouTube uploads')
 
     # Load the template oauth2.json file with our credentials
