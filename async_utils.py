@@ -6,6 +6,9 @@ import os
 # Max requests you can make at once
 LIMIT = int(os.environ.get('MAX_REQUESTS_LIVE', 40))
 
+# Max time we give to any worker thread before bailing on it
+TIMEOUT = int(os.environ.get('WORKER_TIMEOUT', 450))
+
 
 def handle_requests(requests):
     loop = asyncio.new_event_loop()
@@ -15,7 +18,7 @@ def handle_requests(requests):
 
 
 async def fetch(request, session):
-    async with session.request(**request, timeout=None) as response:
+    async with session.request(**request, timeout=TIMEOUT) as response:
         return await response.read()
 
 
