@@ -4,7 +4,7 @@ import sys
 import os
 
 # Max requests you can make at once
-LIMIT = os.environ.get('MAX_REQUESTS_LIVE', 40)
+LIMIT = int(os.environ.get('MAX_REQUESTS_LIVE', 40))
 
 
 def handle_requests(requests):
