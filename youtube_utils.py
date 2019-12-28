@@ -1,6 +1,45 @@
 from subprocess import check_output
 import youtube_dl
 from LogDecorator import LogDecorator
+import os
+from async_utils import handle_requests
+import json
+
+
+@LogDecorator()
+def refresh_access_token(filepath):
+    if 'CLIENT_ID' not in os.environ or 'CLIENT_SECRET' not in os.environ or 'REFRESH_TOKEN' not in os.environ:
+        raise ValueError(f'CLIENT_ID, CLIENT_SECRET, and REFRESH_TOKEN must be defined as environment variables to enable YouTube uploads')
+
+    # Load the template oauth2.json file with our credentials
+    with open('youtube-oauth2.json.example', 'r') as f:
+        oauth_dict = json.loads(f.read())
+
+    # Use the refresh token to request a new access token
+    requests = [{
+        'method': 'POST',
+        'url': 'https://accounts.google.com/o/oauth2/token',
+        'json': {
+            'client_id': os.environ['CLIENT_ID'],
+            'client_secret': os.environ['CLIENT_SECRET'],
+            'refresh_token': os.environ['REFRESH_TOKEN'],
+            'grant_type': 'refresh_token'
+          }
+    }]
+    response = eval(handle_requests(requests)[0].decode('utf-8'))
+
+    # Sub in new access token over the old
+    oauth_dict['token_response'] = response
+
+    # TODO: Handle expiry field??
+
+    # Write to file
+    with open(filepath, 'w') as f:
+        f.write(json.dumps(oauth_dict))
+
+
+
+
 
 @LogDecorator()
 def download_captions(video_code):
