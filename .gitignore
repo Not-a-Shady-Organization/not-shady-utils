@@ -1,5 +1,11 @@
-__pycache__
+
 .envrc
-.utils-env
-.DS_Store
-exploration
+*env
+.not-shady-utils
+
+auth-key-file.json
+
+alg.txt
+
+__pycache__
+captions
